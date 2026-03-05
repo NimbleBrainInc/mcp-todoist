@@ -1,65 +1,80 @@
-"""Tests for Example API models."""
+"""Tests for Todoist API models."""
 
-from mcp_example.api_models import Item, ItemListResponse, Pagination
+from mcp_todoist.api_models import Due, Project, Task
 
 
-def test_item_model() -> None:
-    """Test Item model parsing from API response."""
+def test_task_model() -> None:
+    """Test Task model parsing from API response."""
     data = {
-        "id": "item_123",
-        "name": "Test Item",
-        "description": "A test item",
-        "createdAt": "2026-01-01T00:00:00Z",
-        "updatedAt": "2026-01-02T00:00:00Z",
-        "metadata": {"key": "value"},
+        "id": "task_123",
+        "content": "Buy milk",
+        "description": "From the store",
+        "project_id": "proj_456",
+        "priority": 2,
+        "due": {
+            "date": "2026-03-10",
+            "string": "Mar 10",
+            "is_recurring": False,
+            "datetime": None,
+            "timezone": None,
+        },
+        "is_completed": False,
+        "labels": ["errands"],
+        "created_at": "2026-03-05T00:00:00Z",
+        "url": "https://todoist.com/showTask?id=task_123",
     }
-    item = Item(**data)
-    assert item.id == "item_123"
-    assert item.name == "Test Item"
-    assert item.created_at == "2026-01-01T00:00:00Z"
-    assert item.metadata == {"key": "value"}
+    task = Task(**data)
+    assert task.id == "task_123"
+    assert task.content == "Buy milk"
+    assert task.project_id == "proj_456"
+    assert task.priority == 2
+    assert task.due is not None
+    assert task.due.date == "2026-03-10"
+    assert task.labels == ["errands"]
 
 
-def test_item_model_minimal() -> None:
-    """Test Item model with only required fields."""
-    item = Item(id="item_456")
-    assert item.id == "item_456"
-    assert item.name is None
-    assert item.metadata == {}
+def test_task_model_minimal() -> None:
+    """Test Task model with only required fields."""
+    task = Task(id="task_456", content="Simple task")
+    assert task.id == "task_456"
+    assert task.content == "Simple task"
+    assert task.description == ""
+    assert task.due is None
+    assert task.labels == []
+    assert task.is_completed is False
 
 
-def test_pagination_model() -> None:
-    """Test Pagination model."""
-    data = {"nextCursor": "abc123", "hasMore": True}
-    pagination = Pagination(**data)
-    assert pagination.next_cursor == "abc123"
-    assert pagination.has_more is True
+def test_due_model() -> None:
+    """Test Due model."""
+    due = Due(date="2026-03-10", string="Mar 10", is_recurring=False)
+    assert due.date == "2026-03-10"
+    assert due.string == "Mar 10"
+    assert due.is_recurring is False
+    assert due.datetime is None
 
 
-def test_pagination_defaults() -> None:
-    """Test Pagination model defaults."""
-    pagination = Pagination()
-    assert pagination.next_cursor is None
-    assert pagination.has_more is False
-
-
-def test_item_list_response() -> None:
-    """Test ItemListResponse model."""
+def test_project_model() -> None:
+    """Test Project model parsing."""
     data = {
-        "items": [
-            {"id": "1", "name": "First"},
-            {"id": "2", "name": "Second"},
-        ],
-        "pagination": {"nextCursor": "next", "hasMore": True},
+        "id": "proj_123",
+        "name": "Work",
+        "color": "blue",
+        "order": 1,
+        "is_favorite": True,
+        "is_inbox_project": False,
+        "url": "https://todoist.com/showProject?id=proj_123",
     }
-    response = ItemListResponse(**data)
-    assert len(response.items) == 2
-    assert response.items[0].id == "1"
-    assert response.pagination.has_more is True
+    project = Project(**data)
+    assert project.id == "proj_123"
+    assert project.name == "Work"
+    assert project.is_favorite is True
+    assert project.is_inbox_project is False
 
 
-def test_item_list_response_empty() -> None:
-    """Test ItemListResponse with empty results."""
-    response = ItemListResponse()
-    assert response.items == []
-    assert response.pagination.has_more is False
+def test_project_model_minimal() -> None:
+    """Test Project model with only required fields."""
+    project = Project(id="proj_456", name="Inbox")
+    assert project.id == "proj_456"
+    assert project.name == "Inbox"
+    assert project.color is None
+    assert project.is_favorite is False

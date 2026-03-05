@@ -1,5 +1,5 @@
 # MCPB bundle configuration
-BUNDLE_NAME = mcp-example
+BUNDLE_NAME = mcp-todoist
 VERSION ?= 0.1.0
 
 .PHONY: help install dev-install format format-check lint lint-fix typecheck test test-cov clean run run-http check all bump bundle
@@ -35,7 +35,7 @@ test: ## Run tests with pytest
 	uv run pytest tests/ -v
 
 test-cov: ## Run tests with coverage
-	uv run pytest tests/ -v --cov=src/mcp_example --cov-report=term-missing
+	uv run pytest tests/ -v --cov=src/mcp_todoist --cov-report=term-missing
 
 clean: ## Clean up build artifacts and cache
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
@@ -49,10 +49,10 @@ clean: ## Clean up build artifacts and cache
 	rm -rf *.mcpb
 
 run: ## Run the MCP server in stdio mode
-	uv run python -m mcp_example.server
+	uv run python -m mcp_todoist.server
 
 run-http: ## Run the MCP server in HTTP mode
-	uv run uvicorn mcp_example.server:app --host 0.0.0.0 --port 8000
+	uv run uvicorn mcp_todoist.server:app --host 0.0.0.0 --port 8000
 
 check: format-check lint typecheck test ## Run all checks
 
@@ -66,7 +66,7 @@ endif
 	@jq --arg v "$(VERSION)" '.version = $$v' manifest.json > manifest.tmp.json && mv manifest.tmp.json manifest.json
 	@if [ -f server.json ]; then jq --arg v "$(VERSION)" '.version = $$v' server.json > server.tmp.json && mv server.tmp.json server.json; fi
 	@sed -i '' 's/^version = .*/version = "$(VERSION)"/' pyproject.toml
-	@sed -i '' 's/__version__ = .*/__version__ = "$(VERSION)"/' src/mcp_example/__init__.py
+	@sed -i '' 's/__version__ = .*/__version__ = "$(VERSION)"/' src/mcp_todoist/__init__.py
 	@echo "Version bumped to $(VERSION) in all files."
 
 bundle: ## Build MCPB bundle locally

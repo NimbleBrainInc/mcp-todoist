@@ -1,10 +1,10 @@
-# Example MCP Server
+# Todoist MCP Server
 
-An MCP (Model Context Protocol) server that provides access to the Example API, allowing AI assistants to interact with Example data.
+An MCP (Model Context Protocol) server that provides access to the Todoist API, allowing AI assistants to interact with Todoist data.
 
 ## Features
 
-- List and retrieve items from the Example API
+- List and retrieve items from the Todoist API
 - Async HTTP client with error handling
 - Typed responses with Pydantic models
 
@@ -14,34 +14,34 @@ An MCP (Model Context Protocol) server that provides access to the Example API, 
 
 ```bash
 # Configure your API key
-mpak config set @nimblebraininc/example api_key=your_api_key_here
+mpak config set @nimblebraininc/todoist api_key=your_api_key_here
 
 # Run the server
-mpak run @nimblebraininc/example
+mpak run @nimblebraininc/todoist
 ```
 
 ### Manual Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/NimbleBrainInc/mcp-example.git
-cd mcp-example
+git clone https://github.com/NimbleBrainInc/mcp-todoist.git
+cd mcp-todoist
 
 # Install dependencies with uv
 uv sync
 
 # Set your API key
-export EXAMPLE_API_KEY=your_api_key_here
+export TODOIST_API_KEY=your_api_key_here
 
 # Run the server
-uv run python -m mcp_example.server
+uv run python -m mcp_todoist.server
 ```
 
 ## Configuration
 
 ### Getting Your API Key
 
-1. Go to https://example.com/settings/api
+1. Go to https://app.todoist.com/app/settings/integrations/developer
 2. Create a new API key
 3. Copy the key
 
@@ -52,9 +52,9 @@ Add to your `~/.claude/settings.json`:
 ```json
 {
   "mcpServers": {
-    "example": {
+    "todoist": {
       "command": "mpak",
-      "args": ["run", "@nimblebraininc/example"]
+      "args": ["run", "@nimblebraininc/todoist"]
     }
   }
 }

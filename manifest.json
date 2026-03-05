@@ -1,28 +1,47 @@
 {
   "manifest_version": "0.4",
-  "name": "@nimblebraininc/example",
+  "name": "@nimblebraininc/todoist",
   "version": "0.1.0",
-  "description": "MCP server for the Example API",
+  "description": "MCP server for the Todoist API",
   "author": {
     "name": "NimbleBrain Inc"
   },
   "user_config": {
     "api_key": {
       "type": "string",
-      "title": "Example API Key",
-      "description": "Your API key from https://example.com/settings/api",
+      "title": "Todoist API Key",
+      "description": "Your API token from https://app.todoist.com/app/settings/integrations/developer",
       "sensitive": true,
       "required": true
     }
   },
   "server": {
     "type": "python",
-    "entry_point": "mcp_example.server",
+    "entry_point": "mcp_todoist.server",
     "mcp_config": {
       "command": "python",
-      "args": ["-m", "mcp_example.server"],
+      "args": ["-m", "mcp_todoist.server"],
       "env": {
-        "EXAMPLE_API_KEY": "${user_config.api_key}"
+        "TODOIST_API_KEY": "${user_config.api_key}"
+      }
+    }
+  },
+  "tools": [
+    { "name": "get_tasks", "description": "List tasks, optionally filtered by project or Todoist filter string" },
+    { "name": "create_task", "description": "Create a new task with optional due date, project, and priority" },
+    { "name": "complete_task", "description": "Mark a task as completed by ID" },
+    { "name": "update_task", "description": "Edit a task's content, description, due date, or priority" },
+    { "name": "get_projects", "description": "List all projects" }
+  ],
+  "_meta": {
+    "org.mpaktrust": {
+      "mtf_version": "0.1",
+      "permissions": {
+        "network": "outbound",
+        "filesystem": "none",
+        "subprocess": "none",
+        "environment": "read",
+        "native": "none"
       }
     }
   }

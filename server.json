@@ -1,7 +1,43 @@
 {
-  "name": "@nimblebraininc/example",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.nimblebrain/todoist",
+  "title": "Todoist",
+  "description": "MCP server for the Todoist API",
   "version": "0.1.0",
-  "description": "MCP server for the Example API",
-  "publisher": "nimblebraininc",
-  "repository": "https://github.com/NimbleBrainInc/mcp-example"
+  "websiteUrl": "https://nimblebrain.ai",
+  "repository": {
+    "url": "https://github.com/NimbleBrainInc/mcp-todoist",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": ["mcpb", "pypi"],
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "mcp-todoist",
+      "version": "0.1.0",
+      "transport": { "type": "stdio" },
+      "environmentVariables": [
+        {
+          "name": "TODOIST_API_KEY",
+          "description": "Your API token from https://app.todoist.com/app/settings/integrations/developer",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ],
+  "_meta": {
+    "io.modelcontextprotocol.registry/publisher-provided": {
+      "tool": "mcpb",
+      "version": "0.4"
+    },
+    "org.mpaktrust": {
+      "mtf_version": "0.1",
+      "permissions": {
+        "network": ["api.todoist.com"],
+        "filesystem": "none",
+        "subprocess": "none"
+      }
+    }
+  }
 }
