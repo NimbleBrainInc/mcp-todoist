@@ -119,3 +119,29 @@ async def test_get_tasks_api_error(mock_client):
 
         with pytest.raises(TodoistAPIError):
             await get_tasks()
+
+
+@pytest.mark.asyncio
+async def test_api_error_is_reported_to_context(mock_client):
+    """An API error is awaited onto the context's error log, then re-raised."""
+    mock_client.get_tasks = AsyncMock(side_effect=TodoistAPIError(401, "Unauthorized"))
+    ctx = AsyncMock()
+    with patch("mcp_todoist.server.get_client", return_value=mock_client):
+        from mcp_todoist.server import get_tasks
+
+        with pytest.raises(TodoistAPIError):
+            await get_tasks(ctx=ctx)
+    ctx.error.assert_awaited_once_with("API error: Unauthorized")
+
+
+@pytest.mark.asyncio
+async def test_missing_token_is_reported_to_context(monkeypatch):
+    """A missing TODOIST_API_KEY is awaited onto the context's error log, then raised."""
+    from mcp_todoist import server
+
+    monkeypatch.setattr(server, "_client", None)
+    monkeypatch.delenv("TODOIST_API_KEY", raising=False)
+    ctx = AsyncMock()
+    with pytest.raises(ValueError, match="TODOIST_API_KEY"):
+        await server.get_client(ctx)
+    ctx.error.assert_awaited_once_with("TODOIST_API_KEY environment variable is required")
