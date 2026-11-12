@@ -39,7 +39,7 @@ def get_skill() -> str:
     return SKILL_CONTENT
 
 
-def get_client(ctx: Context | None = None) -> TodoistClient:
+async def get_client(ctx: Context | None = None) -> TodoistClient:
     """Get or create the API client instance."""
     global _client
     if _client is None:
@@ -47,7 +47,7 @@ def get_client(ctx: Context | None = None) -> TodoistClient:
         if not api_key:
             msg = "TODOIST_API_KEY environment variable is required"
             if ctx:
-                ctx.error(msg)
+                await ctx.error(msg)
             raise ValueError(msg)
         _client = TodoistClient(api_key=api_key)
     return _client
@@ -83,13 +83,13 @@ async def get_tasks(
     Returns:
         List of tasks
     """
-    client = get_client(ctx)
+    client = await get_client(ctx)
     try:
         tasks = await client.get_tasks(project_id=project_id, filter=filter, limit=limit)
         return [t.model_dump() for t in tasks]
     except TodoistAPIError as e:
         if ctx:
-            ctx.error(f"API error: {e.message}")
+            await ctx.error(f"API error: {e.message}")
         raise
 
 
@@ -115,7 +115,7 @@ async def create_task(
     Returns:
         The created task
     """
-    client = get_client(ctx)
+    client = await get_client(ctx)
     try:
         task = await client.create_task(
             content=content,
@@ -127,7 +127,7 @@ async def create_task(
         return task.model_dump()
     except TodoistAPIError as e:
         if ctx:
-            ctx.error(f"API error: {e.message}")
+            await ctx.error(f"API error: {e.message}")
         raise
 
 
@@ -145,13 +145,13 @@ async def complete_task(
     Returns:
         Confirmation with the completed task ID
     """
-    client = get_client(ctx)
+    client = await get_client(ctx)
     try:
         await client.complete_task(task_id)
         return {"success": True, "task_id": task_id}
     except TodoistAPIError as e:
         if ctx:
-            ctx.error(f"API error: {e.message}")
+            await ctx.error(f"API error: {e.message}")
         raise
 
 
@@ -177,7 +177,7 @@ async def update_task(
     Returns:
         The updated task
     """
-    client = get_client(ctx)
+    client = await get_client(ctx)
     try:
         task = await client.update_task(
             task_id=task_id,
@@ -189,7 +189,7 @@ async def update_task(
         return task.model_dump()
     except TodoistAPIError as e:
         if ctx:
-            ctx.error(f"API error: {e.message}")
+            await ctx.error(f"API error: {e.message}")
         raise
 
 
@@ -205,13 +205,13 @@ async def get_projects(
     Returns:
         List of projects with their IDs and names
     """
-    client = get_client(ctx)
+    client = await get_client(ctx)
     try:
         projects = await client.get_projects()
         return [p.model_dump() for p in projects]
     except TodoistAPIError as e:
         if ctx:
-            ctx.error(f"API error: {e.message}")
+            await ctx.error(f"API error: {e.message}")
         raise
 
 
