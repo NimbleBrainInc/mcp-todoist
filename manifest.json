@@ -1,7 +1,7 @@
 {
   "manifest_version": "0.4",
   "name": "@nimblebraininc/todoist",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
   "description": "MCP server for the Todoist API",
   "author": {
@@ -21,18 +21,36 @@
     "entry_point": "mcp_todoist.server",
     "mcp_config": {
       "command": "python",
-      "args": ["-m", "mcp_todoist.server"],
+      "args": [
+        "-m",
+        "mcp_todoist.server"
+      ],
       "env": {
         "TODOIST_API_KEY": "${user_config.api_key}"
       }
     }
   },
   "tools": [
-    { "name": "get_tasks", "description": "List tasks, optionally filtered by project or Todoist filter string" },
-    { "name": "create_task", "description": "Create a new task with optional due date, project, and priority" },
-    { "name": "complete_task", "description": "Mark a task as completed by ID" },
-    { "name": "update_task", "description": "Edit a task's content, description, due date, or priority" },
-    { "name": "get_projects", "description": "List all projects" }
+    {
+      "name": "get_tasks",
+      "description": "List tasks, optionally filtered by project or Todoist filter string"
+    },
+    {
+      "name": "create_task",
+      "description": "Create a new task with optional due date, project, and priority"
+    },
+    {
+      "name": "complete_task",
+      "description": "Mark a task as completed by ID"
+    },
+    {
+      "name": "update_task",
+      "description": "Edit a task's content, description, due date, or priority"
+    },
+    {
+      "name": "get_projects",
+      "description": "List all projects"
+    }
   ],
   "_meta": {
     "org.mpaktrust": {

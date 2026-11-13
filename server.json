@@ -3,7 +3,7 @@
   "name": "io.nimblebrain/todoist",
   "title": "Todoist",
   "description": "MCP server for the Todoist API",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "websiteUrl": "https://nimblebrain.ai",
   "repository": {
     "url": "https://github.com/NimbleBrainInc/mcp-todoist",
@@ -11,11 +11,16 @@
   },
   "packages": [
     {
-      "registryType": ["mcpb", "pypi"],
+      "registryType": [
+        "mcpb",
+        "pypi"
+      ],
       "registryBaseUrl": "https://pypi.org",
       "identifier": "mcp-todoist",
       "version": "0.1.0",
-      "transport": { "type": "stdio" },
+      "transport": {
+        "type": "stdio"
+      },
       "environmentVariables": [
         {
           "name": "TODOIST_API_KEY",
@@ -34,7 +39,9 @@
     "org.mpaktrust": {
       "mtf_version": "0.1",
       "permissions": {
-        "network": ["api.todoist.com"],
+        "network": [
+          "api.todoist.com"
+        ],
         "filesystem": "none",
         "subprocess": "none"
       }

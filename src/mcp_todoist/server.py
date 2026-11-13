@@ -5,13 +5,16 @@ import os
 import sys
 from importlib.resources import files
 
-from fastmcp import Context, FastMCP
+from fastmcp import FastMCP
+from fastmcp.exceptions import ToolError
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from mcp_todoist.api_client import TodoistAPIError, TodoistClient
 
-# Logging setup - all logs to stderr (stdout is reserved for JSON-RPC)
+# Logging setup - all logs to stderr (stdout is reserved for JSON-RPC). Diagnostics go
+# here, never to the client: MCP's logging capability is deprecated as of the 2026-07-28
+# protocol (SEP-2577). A failure the caller must see is raised as a ToolError.
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -39,16 +42,14 @@ def get_skill() -> str:
     return SKILL_CONTENT
 
 
-async def get_client(ctx: Context | None = None) -> TodoistClient:
+async def get_client() -> TodoistClient:
     """Get or create the API client instance."""
     global _client
     if _client is None:
         api_key = os.environ.get("TODOIST_API_KEY")
         if not api_key:
-            msg = "TODOIST_API_KEY environment variable is required"
-            if ctx:
-                await ctx.error(msg)
-            raise ValueError(msg)
+            logger.error("TODOIST_API_KEY is not set")
+            raise ToolError("TODOIST_API_KEY environment variable is required")
         _client = TodoistClient(api_key=api_key)
     return _client
 
@@ -70,7 +71,6 @@ async def get_tasks(
     project_id: str | None = None,
     filter: str | None = None,
     limit: int = 50,
-    ctx: Context | None = None,
 ) -> list[dict]:
     """List tasks from Todoist.
 
@@ -78,19 +78,17 @@ async def get_tasks(
         project_id: Filter tasks by project ID (optional)
         filter: Todoist filter string, e.g. "today", "overdue", "p1" (optional)
         limit: Maximum number of tasks to return (default 50)
-        ctx: MCP context for logging
 
     Returns:
         List of tasks
     """
-    client = await get_client(ctx)
+    client = await get_client()
     try:
         tasks = await client.get_tasks(project_id=project_id, filter=filter, limit=limit)
         return [t.model_dump() for t in tasks]
     except TodoistAPIError as e:
-        if ctx:
-            await ctx.error(f"API error: {e.message}")
-        raise
+        logger.warning("get_tasks failed: %s", e)
+        raise ToolError(str(e)) from e
 
 
 @mcp.tool()
@@ -100,7 +98,6 @@ async def create_task(
     project_id: str | None = None,
     due_string: str | None = None,
     priority: int | None = None,
-    ctx: Context | None = None,
 ) -> dict:
     """Create a new task in Todoist.
 
@@ -110,12 +107,11 @@ async def create_task(
         project_id: Project to add the task to (defaults to Inbox)
         due_string: Natural language due date, e.g. "tomorrow", "next Monday", "Jan 15"
         priority: Priority level: 1=normal, 2=medium, 3=high, 4=urgent
-        ctx: MCP context for logging
 
     Returns:
         The created task
     """
-    client = await get_client(ctx)
+    client = await get_client()
     try:
         task = await client.create_task(
             content=content,
@@ -126,33 +122,29 @@ async def create_task(
         )
         return task.model_dump()
     except TodoistAPIError as e:
-        if ctx:
-            await ctx.error(f"API error: {e.message}")
-        raise
+        logger.warning("create_task failed: %s", e)
+        raise ToolError(str(e)) from e
 
 
 @mcp.tool()
 async def complete_task(
     task_id: str,
-    ctx: Context | None = None,
 ) -> dict:
     """Mark a task as completed.
 
     Args:
         task_id: The ID of the task to complete
-        ctx: MCP context for logging
 
     Returns:
         Confirmation with the completed task ID
     """
-    client = await get_client(ctx)
+    client = await get_client()
     try:
         await client.complete_task(task_id)
         return {"success": True, "task_id": task_id}
     except TodoistAPIError as e:
-        if ctx:
-            await ctx.error(f"API error: {e.message}")
-        raise
+        logger.warning("complete_task failed: %s", e)
+        raise ToolError(str(e)) from e
 
 
 @mcp.tool()
@@ -162,7 +154,6 @@ async def update_task(
     description: str | None = None,
     due_string: str | None = None,
     priority: int | None = None,
-    ctx: Context | None = None,
 ) -> dict:
     """Update an existing task.
 
@@ -172,12 +163,11 @@ async def update_task(
         description: New description (optional)
         due_string: New due date as natural language, e.g. "tomorrow", "next Friday" (optional)
         priority: New priority: 1=normal, 2=medium, 3=high, 4=urgent (optional)
-        ctx: MCP context for logging
 
     Returns:
         The updated task
     """
-    client = await get_client(ctx)
+    client = await get_client()
     try:
         task = await client.update_task(
             task_id=task_id,
@@ -188,31 +178,24 @@ async def update_task(
         )
         return task.model_dump()
     except TodoistAPIError as e:
-        if ctx:
-            await ctx.error(f"API error: {e.message}")
-        raise
+        logger.warning("update_task failed: %s", e)
+        raise ToolError(str(e)) from e
 
 
 @mcp.tool()
-async def get_projects(
-    ctx: Context | None = None,
-) -> list[dict]:
+async def get_projects() -> list[dict]:
     """List all Todoist projects.
-
-    Args:
-        ctx: MCP context for logging
 
     Returns:
         List of projects with their IDs and names
     """
-    client = await get_client(ctx)
+    client = await get_client()
     try:
         projects = await client.get_projects()
         return [p.model_dump() for p in projects]
     except TodoistAPIError as e:
-        if ctx:
-            await ctx.error(f"API error: {e.message}")
-        raise
+        logger.warning("get_projects failed: %s", e)
+        raise ToolError(str(e)) from e
 
 
 # ============================================================================

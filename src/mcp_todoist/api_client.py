@@ -45,7 +45,7 @@ class TodoistClient:
     async def _ensure_session(self) -> None:
         if not self._session:
             headers = {
-                "User-Agent": "mcp-server-todoist/0.1.0",
+                "User-Agent": "mcp-server-todoist/0.2.0",
                 "Accept": "application/json",
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {self.api_key}",

@@ -3,6 +3,8 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from fastmcp import Client
+from fastmcp.exceptions import ToolError
 
 from mcp_todoist.api_client import TodoistAPIError
 from mcp_todoist.api_models import Project, Task
@@ -112,36 +114,33 @@ async def test_get_projects(mock_client):
 
 @pytest.mark.asyncio
 async def test_get_tasks_api_error(mock_client):
-    """Test get_tasks handles API errors."""
+    """An API error reaches the caller as a ToolError carrying its message."""
     mock_client.get_tasks = AsyncMock(side_effect=TodoistAPIError(401, "Unauthorized"))
     with patch("mcp_todoist.server.get_client", return_value=mock_client):
         from mcp_todoist.server import get_tasks
 
-        with pytest.raises(TodoistAPIError):
+        with pytest.raises(ToolError, match="Unauthorized"):
             await get_tasks()
 
 
 @pytest.mark.asyncio
-async def test_api_error_is_reported_to_context(mock_client):
-    """An API error is awaited onto the context's error log, then re-raised."""
+async def test_api_error_reaches_an_mcp_client_as_an_error_result(mock_client):
+    """Through the protocol, the failure is an error result, with no client log message."""
     mock_client.get_tasks = AsyncMock(side_effect=TodoistAPIError(401, "Unauthorized"))
-    ctx = AsyncMock()
     with patch("mcp_todoist.server.get_client", return_value=mock_client):
-        from mcp_todoist.server import get_tasks
+        from mcp_todoist.server import mcp
 
-        with pytest.raises(TodoistAPIError):
-            await get_tasks(ctx=ctx)
-    ctx.error.assert_awaited_once_with("API error: Unauthorized")
+        async with Client(mcp) as client:
+            with pytest.raises(ToolError, match="Unauthorized"):
+                await client.call_tool("get_tasks", {})
 
 
 @pytest.mark.asyncio
-async def test_missing_token_is_reported_to_context(monkeypatch):
-    """A missing TODOIST_API_KEY is awaited onto the context's error log, then raised."""
+async def test_missing_token_is_a_tool_error(monkeypatch):
+    """Without TODOIST_API_KEY the tool fails with a message naming the variable."""
     from mcp_todoist import server
 
     monkeypatch.setattr(server, "_client", None)
     monkeypatch.delenv("TODOIST_API_KEY", raising=False)
-    ctx = AsyncMock()
-    with pytest.raises(ValueError, match="TODOIST_API_KEY"):
-        await server.get_client(ctx)
-    ctx.error.assert_awaited_once_with("TODOIST_API_KEY environment variable is required")
+    with pytest.raises(ToolError, match="TODOIST_API_KEY"):
+        await server.get_client()
